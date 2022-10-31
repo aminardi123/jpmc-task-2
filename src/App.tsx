@@ -8,6 +8,8 @@ import './App.css';
  */
 interface IState {
   data: ServerRespond[],
+  // added showGraph to create a new boolean property in the application
+  showGraph: boolean,
 }
 
 /**
@@ -22,6 +24,10 @@ class App extends Component<{}, IState> {
       // data saves the server responds.
       // We use this state to parse data down to the child element (Graph) as element property
       data: [],
+
+      // Added showGraph property as indicated by the IState interface
+      // default visibility of graph is false
+      showGraph : false,
     };
   }
 
@@ -29,18 +35,37 @@ class App extends Component<{}, IState> {
    * Render Graph react component with state.data parse as property data
    */
   renderGraph() {
-    return (<Graph data={this.state.data}/>)
+    // Block runs if the application's showGraph property is true
+    if (this.state.showGraph) {
+      // Returns data necessary to render the graph
+      return (<Graph data={this.state.data}/>)
+    }
   }
 
   /**
    * Get new data from server and update the state with the new data
    */
   getDataFromServer() {
-    DataStreamer.getData((serverResponds: ServerRespond[]) => {
+    // Variable x
+    let x = 0;
+
+    // Constant interval defined using setInterval() method
+    const interval = setInterval(() => {
+      DataStreamer.getData((serverResponds: ServerRespond[]) => {
       // Update the state by creating a new array of data that consists of
       // Previous data in the state and the new data from server
-      this.setState({ data: [...this.state.data, ...serverResponds] });
+      this.setState({
+        data: serverResponds,
+        showGraph: true,
+      });
     });
+      // Increments x by 1 every time current method is called
+      x++;
+      if(x > 1000) {
+        // Resets the interval
+        clearInterval(interval);
+      }
+    }, 100);
   }
 
   /**
